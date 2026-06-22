@@ -29,6 +29,27 @@ except ImportError:
 
 import yfinance as yf
 
+# US company-name -> ticker (so users can type "apple" not just "AAPL")
+US_NAME_MAP = {
+    "APPLE":"AAPL","MICROSOFT":"MSFT","GOOGLE":"GOOGL","ALPHABET":"GOOGL","AMAZON":"AMZN",
+    "META":"META","FACEBOOK":"META","NVIDIA":"NVDA","TESLA":"TSLA","NETFLIX":"NFLX",
+    "ADOBE":"ADBE","INTEL":"INTC","AMD":"AMD","CISCO":"CSCO","ORACLE":"ORCL",
+    "SALESFORCE":"CRM","PAYPAL":"PYPL","QUALCOMM":"QCOM","BROADCOM":"AVGO",
+    "WALMART":"WMT","DISNEY":"DIS","COCA COLA":"KO","COCACOLA":"KO","PEPSI":"PEP","PEPSICO":"PEP",
+    "MCDONALDS":"MCD","NIKE":"NKE","STARBUCKS":"SBUX","BOEING":"BA","FORD":"F",
+    "GENERAL MOTORS":"GM","JPMORGAN":"JPM","JP MORGAN":"JPM","BANK OF AMERICA":"BAC","VISA":"V",
+    "MASTERCARD":"MA","GOLDMAN SACHS":"GS","MORGAN STANLEY":"MS","BERKSHIRE":"BRK-B",
+    "JOHNSON":"JNJ","PFIZER":"PFE","MODERNA":"MRNA","MERCK":"MRK","EXXON":"XOM","CHEVRON":"CVX",
+    "IBM":"IBM","UBER":"UBER","LYFT":"LYFT","AIRBNB":"ABNB","PALANTIR":"PLTR","SNOWFLAKE":"SNOW",
+    "ZOOM":"ZM","SHOPIFY":"SHOP","SPOTIFY":"SPOT","BLOCK":"SQ","ROBINHOOD":"HOOD","COINBASE":"COIN",
+    "MICRON":"MU","HONEYWELL":"HON","CATERPILLAR":"CAT","AMERICAN EXPRESS":"AXP","COSTCO":"COST",
+    "TARGET":"TGT","HOME DEPOT":"HD",
+}
+def resolve_symbol(s):
+    s=(s or "").strip()
+    if not s: return s
+    return US_NAME_MAP.get(s.upper(), s.upper())
+
 # ---------- exact desktop palette ----------
 BG="#0d1311"; CARD="#15201b"; CARD2="#1d2c24"
 ACCENT="#10b981"; ACCENT2="#34d399"; GOLD="#d4af37"
@@ -156,7 +177,15 @@ h1,h2,h3,h4,h5,h6 {{ color:{TEXT}; }}
 .stTabs [data-baseweb="tab-list"] {{ gap:2px; background:transparent; flex-wrap:wrap; }}
 .stTabs [data-baseweb="tab"] {{ background:{CARD}; color:{MUTED}; border-radius:8px 8px 0 0;
     padding:8px 14px; border:1px solid {BORDER}; font-size:0.85rem; }}
-.stTabs [aria-selected="true"] {{ background:{ACCENT} !important; color:#ffffff !important; }}
+.stTabs [aria-selected="true"] {{ background:{ACCENT} !important; color:#ffffff !important;
+    box-shadow:0 -3px 10px {ACCENT}55, 0 2px 6px rgba(0,0,0,0.4); transform:translateY(-2px);
+    font-weight:700; }}
+/* active market button (type=primary) - raised 3D look */
+.stButton button[kind="primary"] {{ background:{ACCENT} !important; color:#fff !important;
+    border:1px solid {ACCENT2} !important; box-shadow:0 4px 12px {ACCENT}55, 0 1px 3px rgba(0,0,0,0.5);
+    transform:translateY(-1px); font-weight:700; }}
+.stButton button[kind="secondary"] {{ background:{CARD} !important; color:{TEXT} !important;
+    border:1px solid {BORDER} !important; }}
 /* inputs / buttons */
 .stTextInput input, .stNumberInput input {{ background:{CARD2}; color:{TEXT}; border:1px solid {BORDER}; }}
 .stButton button {{ background:{ACCENT}; color:#ffffff; border:none; border-radius:8px;
@@ -223,8 +252,8 @@ def cached_forex(market):
     return out
 
 
-def chart_figure(symbol, market, period, interval, d, ma_mode="SMA"):
-    """Plotly candlestick + SMA/EMA + volume + unified hover (Price + MAs)."""
+def chart_figure(symbol, market, period, interval, d, ma_mode="SMA", chart_type="Candle"):
+    """Plotly candle/line + SMA/EMA + volume + unified hover (Price + MAs)."""
     from plotly.subplots import make_subplots
     core.set_market(market)
     ysym = symbol if market=="US" else symbol+".NS"
@@ -238,10 +267,14 @@ def chart_figure(symbol, market, period, interval, d, ma_mode="SMA"):
     # two stacked panels: price (big) + volume (small), shared x-axis
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
                         row_heights=[0.78,0.22], vertical_spacing=0.04)
-    fig.add_trace(go.Candlestick(x=h.index, open=h["Open"], high=h["High"],
-        low=h["Low"], close=h["Close"], name="Price",
-        increasing_line_color=GOOD, decreasing_line_color=BAD,
-        increasing_fillcolor=GOOD, decreasing_fillcolor=BAD), row=1, col=1)
+    if chart_type=="Line":
+        fig.add_trace(go.Scatter(x=h.index, y=h["Close"], name="Price", mode="lines",
+            line=dict(color=ACCENT2,width=2)), row=1, col=1)
+    else:
+        fig.add_trace(go.Candlestick(x=h.index, open=h["Open"], high=h["High"],
+            low=h["Low"], close=h["Close"], name="Price",
+            increasing_line_color=GOOD, decreasing_line_color=BAD,
+            increasing_fillcolor=GOOD, decreasing_fillcolor=BAD), row=1, col=1)
     lbl1,lbl2 = ("20 EMA","50 EMA") if ma_mode=="EMA" else ("20 SMA","50 SMA")
     ma1 = c.ewm(span=20).mean() if ma_mode=="EMA" else c.rolling(20).mean()
     ma2 = c.ewm(span=50).mean() if ma_mode=="EMA" else c.rolling(50).mean()
@@ -328,7 +361,9 @@ mkt_defs = [("India","🇮🇳 Indian Market"),("US","🇺🇸 US Market"),("Cry
             ("Forex","💱 Forex"),("Commodity","🛢 Commodity"),("MF","🏦 Mutual Funds")]
 for i,(key,label) in enumerate(mkt_defs):
     with mkt_cols[i]:
-        if st.button(label, key=f"mkt_{key}", use_container_width=True):
+        is_active = (st.session_state.market==key)
+        if st.button(label, key=f"mkt_{key}", use_container_width=True,
+                     type=("primary" if is_active else "secondary")):
             st.session_state.market = key
             st.rerun()
 
@@ -507,14 +542,20 @@ def render_stock_market():
 
     # ---------- ANALYZE ----------
     with tabs[0]:
+        # build searchable options: tickers + (for US) company names
+        opts = list(active_list())
+        if MK=="US":
+            opts = opts + [n.title() for n in US_NAME_MAP.keys()]
+        opts = sorted(set(opts))
         c1,c2 = st.columns([5,1])
         with c1:
-            sym = st.text_input("Symbol", value=st.session_state.get("analyze_sym","HDFCBANK" if MK=="India" else "AAPL"),
-                                label_visibility="collapsed", key="analyze_input")
+            picked = st.selectbox("Symbol", options=[""]+opts,
+                                  index=0, label_visibility="collapsed", key="analyze_pick",
+                                  placeholder="Type a stock name or symbol...")
         with c2:
             go_btn = st.button("Analyze", use_container_width=True, key="analyze_go")
-        if go_btn and sym.strip():
-            st.session_state.analyze_sym = sym.strip().upper()
+        if go_btn and picked.strip():
+            st.session_state.analyze_sym = resolve_symbol(picked)
         cur_sym = st.session_state.get("analyze_sym")
         if cur_sym:
             try:
@@ -658,11 +699,12 @@ def render_stock_market():
                 if not ai_ready(): st.warning("Add your free Gemini key in the sidebar.")
                 else: run_macro()
         with mcol2:
-            if st.button("Load Market News", key="macro_news", use_container_width=True):
+            if st.button("Load Market News", key="macro_news_btn", use_container_width=True):
                 load_macro_news()
         if st.session_state.get("macro_txt"):
             render_ai_text(st.session_state["macro_txt"])
-        for item in st.session_state.get("macro_news",[]):
+        _mnews = st.session_state.get("macro_news") or []
+        for item in _mnews:
             title,pub,url=item[0],item[1] if len(item)>1 else "",item[2] if len(item)>2 else ""
             if url: st.markdown(f"- [{title}]({url})  <span class='sh-muted'>({pub})</span>", unsafe_allow_html=True)
             else: st.markdown(f"- {title}  <span class='sh-muted'>({pub})</span>", unsafe_allow_html=True)
@@ -776,17 +818,25 @@ def render_analysis(d, news, sym):
     with right:
         # chart with SMA/EMA toggle + timeframe
         if HAS_PLOTLY:
-            tc = st.columns([3,2])
+            tc = st.columns([2,2,2])
             with tc[0]:
                 tf = st.selectbox("Timeframe", ["5m","15m","1H","4H","1D","1W","1M"], index=4, key="chart_tf")
             with tc[1]:
                 ma = st.radio("MA", ["SMA","EMA"], horizontal=True, key="chart_ma")
+            with tc[2]:
+                ctype = st.radio("Chart", ["Candle","Line"], horizontal=True, key="chart_type")
             tfmap={"5m":("5d","5m"),"15m":("5d","15m"),"1H":("1mo","1h"),"4H":("3mo","1h"),
                    "1D":("6mo","1d"),"1W":("2y","1wk"),"1M":("5y","1mo")}
             per,iv = tfmap[tf]
             with st.spinner("Loading chart..."):
-                fig = chart_figure(sym, MK, per, iv, d, ma)
-            if fig: st.plotly_chart(fig, use_container_width=True)
+                fig = chart_figure(sym, MK, per, iv, d, ma, ctype)
+            if fig:
+                st.plotly_chart(fig, use_container_width=True, config={
+                    "displaylogo": False,
+                    "modeBarButtonsToRemove": ["select2d","lasso2d","autoScale2d",
+                        "hoverClosestCartesian","hoverCompareCartesian","toggleSpikelines","toImage"],
+                    "displayModeBar": True,
+                    "scrollZoom": True})
             else: st.info("Chart data not available for this timeframe.")
 
         # trade plan by timeframe (BUY/SELL)
