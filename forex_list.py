@@ -1,0 +1,92 @@
+# ============================================================
+#   Forex / Commodities / Crypto symbol list (Yahoo Finance)
+#   Used by both StockHunter desktop and web apps.
+#   Format: (Display name, Yahoo symbol, category)
+# ============================================================
+
+FOREX_INSTRUMENTS = [
+    # ---------- Major currency pairs ----------
+    ("EUR/USD", "EURUSD=X", "Major"),
+    ("GBP/USD", "GBPUSD=X", "Major"),
+    ("USD/JPY", "JPY=X",    "Major"),
+    ("USD/CHF", "CHF=X",    "Major"),
+    ("AUD/USD", "AUDUSD=X", "Major"),
+    ("USD/CAD", "CAD=X",    "Major"),
+    ("NZD/USD", "NZDUSD=X", "Major"),
+
+    # ---------- Minor / cross pairs ----------
+    ("EUR/GBP", "EURGBP=X", "Cross"),
+    ("EUR/JPY", "EURJPY=X", "Cross"),
+    ("GBP/JPY", "GBPJPY=X", "Cross"),
+    ("EUR/CHF", "EURCHF=X", "Cross"),
+    ("EUR/AUD", "EURAUD=X", "Cross"),
+    ("EUR/CAD", "EURCAD=X", "Cross"),
+    ("GBP/CHF", "GBPCHF=X", "Cross"),
+    ("GBP/CAD", "GBPCAD=X", "Cross"),
+    ("GBP/AUD", "GBPAUD=X", "Cross"),
+    ("AUD/JPY", "AUDJPY=X", "Cross"),
+    ("AUD/CAD", "AUDCAD=X", "Cross"),
+    ("AUD/CHF", "AUDCHF=X", "Cross"),
+    ("AUD/NZD", "AUDNZD=X", "Cross"),
+    ("CAD/JPY", "CADJPY=X", "Cross"),
+    ("CHF/JPY", "CHFJPY=X", "Cross"),
+    ("NZD/JPY", "NZDJPY=X", "Cross"),
+    ("EUR/NZD", "EURNZD=X", "Cross"),
+    ("GBP/NZD", "GBPNZD=X", "Cross"),
+    ("CAD/CHF", "CADCHF=X", "Cross"),
+    ("NZD/CAD", "NZDCAD=X", "Cross"),
+    ("NZD/CHF", "NZDCHF=X", "Cross"),
+
+    # ---------- Exotic pairs (USD vs emerging / other) ----------
+    ("USD/INR", "INR=X",    "Exotic"),
+    ("USD/SGD", "SGD=X",    "Exotic"),
+    ("USD/HKD", "HKD=X",    "Exotic"),
+    ("USD/CNY", "CNY=X",    "Exotic"),
+    ("USD/MXN", "MXN=X",    "Exotic"),
+    ("USD/ZAR", "ZAR=X",    "Exotic"),
+    ("USD/TRY", "TRY=X",    "Exotic"),
+    ("USD/SEK", "SEK=X",    "Exotic"),
+    ("USD/NOK", "NOK=X",    "Exotic"),
+    ("USD/DKK", "DKK=X",    "Exotic"),
+    ("USD/PLN", "PLN=X",    "Exotic"),
+    ("USD/THB", "THB=X",    "Exotic"),
+    ("USD/IDR", "IDR=X",    "Exotic"),
+    ("USD/KRW", "KRW=X",    "Exotic"),
+    ("USD/PHP", "PHP=X",    "Exotic"),
+    ("USD/BRL", "BRL=X",    "Exotic"),
+    ("USD/RUB", "RUB=X",    "Exotic"),
+
+    # ---------- Commodities ----------
+    ("Gold (XAU/USD)",   "GC=F", "Commodity"),
+    ("Silver (XAG/USD)", "SI=F", "Commodity"),
+    ("Platinum",         "PL=F", "Commodity"),
+    ("Palladium",        "PA=F", "Commodity"),
+    ("Copper",           "HG=F", "Commodity"),
+    ("Crude Oil (WTI)",  "CL=F", "Commodity"),
+    ("Brent Crude",      "BZ=F", "Commodity"),
+    ("Natural Gas",      "NG=F", "Commodity"),
+    ("Gasoline",         "RB=F", "Commodity"),
+    ("Heating Oil",      "HO=F", "Commodity"),
+    ("Corn",             "ZC=F", "Commodity"),
+    ("Wheat",            "ZW=F", "Commodity"),
+    ("Soybean",          "ZS=F", "Commodity"),
+    ("Coffee",           "KC=F", "Commodity"),
+    ("Sugar",            "SB=F", "Commodity"),
+    ("Cotton",           "CT=F", "Commodity"),
+    ("Cocoa",            "CC=F", "Commodity"),
+
+    # ---------- Major cryptos ----------
+    ("Bitcoin (BTC)",   "BTC-USD",  "Crypto"),
+    ("Ethereum (ETH)",  "ETH-USD",  "Crypto"),
+    ("BNB",             "BNB-USD",  "Crypto"),
+    ("Solana (SOL)",    "SOL-USD",  "Crypto"),
+    ("XRP",             "XRP-USD",  "Crypto"),
+    ("Cardano (ADA)",   "ADA-USD",  "Crypto"),
+    ("Dogecoin (DOGE)", "DOGE-USD", "Crypto"),
+    ("Polkadot (DOT)",  "DOT-USD",  "Crypto"),
+    ("Polygon (MATIC)", "MATIC-USD","Crypto"),
+    ("Litecoin (LTC)",  "LTC-USD",  "Crypto"),
+    ("Avalanche (AVAX)","AVAX-USD", "Crypto"),
+    ("Chainlink (LINK)","LINK-USD", "Crypto"),
+    ("TRON (TRX)",      "TRX-USD",  "Crypto"),
+]
