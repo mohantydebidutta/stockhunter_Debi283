@@ -674,6 +674,18 @@ def show_portfolio_result():
         "SL":f"{x['sl']:.0f}" if x['sl'] else "-","Target":f"{x['tp']:.0f}" if x['tp'] else "-",
         "Signal":x["verdict"]} for x in r["rows"]])
     st.dataframe(df,use_container_width=True,hide_index=True)
+    # clickable - tap a holding to open its analysis
+    psyms=[x["sym"] for x in r["rows"]]
+    if psyms:
+        st.caption("Tap a holding to open its full analysis.")
+        per=4
+        for start in range(0,len(psyms),per):
+            chunk=psyms[start:start+per]; bcols=st.columns(per)
+            for j,s in enumerate(chunk):
+                if bcols[j].button(f"📈 {s}", key=f"pf_open_{s}", use_container_width=True):
+                    st.session_state.analyze_sym=s.strip().upper()
+                    st.session_state["jump_to_analyze"]=True
+                    st.rerun()
     st.markdown("#### 🧑‍💼 Portfolio Manager Review (AI)")
     render_ai_text(r["txt"])
 
@@ -1508,7 +1520,19 @@ def render_mf_detail(mf):
             dfp=pd.DataFrame([{"Fund":r["Fund"],"1Y":_f(r["1Y"]),"3Y/yr":_f(r["3Y/yr"]),
                                "5Y/yr":_f(r["5Y/yr"]),"Expense (est.)":r["Expense"]} for r in rows])
             st.dataframe(dfp, use_container_width=True, hide_index=True)
-            st.caption("Higher 3Y/5Y returns with a lower expense ratio is usually the better long-term pick.")
+            st.caption("Tap a fund below to open it. Higher 3Y/5Y returns with a lower expense ratio "
+                       "is usually the better long-term pick.")
+            # clickable buttons - tapping a peer opens that fund
+            pcols=st.columns(2)
+            for idx,(n,c) in enumerate(peers):
+                if pcols[idx%2].button(f"📊 {n}", key=f"peer_{c}", use_container_width=True):
+                    pm=cached_mf(c)
+                    if pm and not pm.get("error"):
+                        pm["name"]=n; pm["cat"]=cat
+                        st.session_state.mf_sel=pm
+                        st.rerun()
+                    else:
+                        st.warning(f"Could not load {n} right now - try again.")
 
 
 # =========================================================
